@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Akdeniz Bitkileri Keminformatik Atlası</title>
+<meta name="description" content="Zeytin yaprağı, incir sütü, kekik ve defne bileşiklerinin Lipinski ve ADMET özelliklerinin keminformatik karşılaştırması: bulgular ve etkileşimli ön eleme aracı.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<style>
+body{margin:0}
+
+/* Düzen: üstte başlık ve açıklama, ortada grafik + seçili bileşik paneli, altta sıralanabilir tablo, en altta kendi bileşiğini deneme formu. */
+:root{
+  --bg:#f3f6f6; --surface:#ffffff; --ink:#15262b; --muted:#53666b; --line:#d4dedf;
+  --accent:#0b6e6e; --accent-soft:#d9efee; --warn:#a85a00; --warn-soft:#fbe9d2; --bad:#a3262a; --bad-soft:#f8dcdc; --ok:#1d7a46; --ok-soft:#dcf1e4;
+  --z:#2e8b57; --i:#b8860b; --k:#7b2d8e; --d:#2166ac;
+  --f-display:"Source Serif 4",Georgia,serif; --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1c1f; --surface:#162629; --ink:#e4eeee; --muted:#9bb0b3; --line:#2a4044;
+  --accent:#4fc3c0; --accent-soft:#12403f; --warn:#f0a850; --warn-soft:#3d2c12; --bad:#ff8a8d; --bad-soft:#41191b; --ok:#6fd49b; --ok-soft:#14392a;
+  --z:#58c88a; --i:#e0b43c; --k:#c487d6; --d:#6aa8e8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1c1f; --surface:#162629; --ink:#e4eeee; --muted:#9bb0b3; --line:#2a4044;
+  --accent:#4fc3c0; --accent-soft:#12403f; --warn:#f0a850; --warn-soft:#3d2c12; --bad:#ff8a8d; --bad-soft:#41191b; --ok:#6fd49b; --ok-soft:#14392a;
+  --z:#58c88a; --i:#e0b43c; --k:#c487d6; --d:#6aa8e8; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font:600 clamp(26px,4vw,36px)/1.15 var(--f-display);margin:0 0 8px;text-wrap:balance}
+h2{font:600 19px/1.3 var(--f-display);margin:0 0 4px}
+p{margin:0}
+.lede{color:var(--muted);max-width:68ch}
+.meta{font:12px var(--f-mono);color:var(--muted);margin-top:10px;display:flex;flex-wrap:wrap;gap:6px 16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 13px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:99px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.chip:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,th button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:20px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);padding:16px;min-width:0}
+.panel h3{font:600 13px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+svg{display:block;width:100%;height:auto}
+svg text{fill:var(--muted);font:11px var(--f-mono)}
+.pt{cursor:pointer}
+.pt:focus-visible{outline:none}
+.pt:focus-visible circle,.pt:focus-visible rect,.pt:focus-visible path{stroke:var(--ink);stroke-width:2.5}
+.sumrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.sum{border-left:4px solid var(--c);padding:6px 0 6px 12px}
+.sum b{font:600 15px var(--f-body)} .sum span{display:block;font:13px var(--f-mono);color:var(--muted)}
+.pill{display:inline-block;font:500 12px var(--f-mono);padding:2px 8px;border-radius:99px;white-space:nowrap}
+.p-ok{background:var(--ok-soft);color:var(--ok)} .p-warn{background:var(--warn-soft);color:var(--warn)} .p-bad{background:var(--bad-soft);color:var(--bad)} .p-na{background:var(--accent-soft);color:var(--accent)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:760px}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{font:600 12px var(--f-body);color:var(--muted);position:sticky;top:0;background:var(--surface)}
+th button{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+tbody tr{cursor:pointer} tbody tr:hover{background:var(--accent-soft)} tbody tr[aria-selected="true"]{background:var(--accent-soft)}
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px}
+input[type=search],input[type=number],input[type=text]{font:14px var(--f-body);padding:8px 10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;width:100%}
+.detail dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0 0 12px;font-size:14px}
+.detail dt{color:var(--muted)} .detail dd{margin:0;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.rules{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.bar{display:grid;grid-template-columns:78px minmax(0,1fr) 44px;gap:8px;align-items:center;font:12px var(--f-mono);margin:3px 0}
+.track{position:relative;height:10px;background:var(--accent-soft)}
+.fill{position:absolute;inset:0 auto 0 0;background:var(--accent)}
+.fill.flag{background:var(--warn)}
+.half{position:absolute;top:-3px;bottom:-3px;left:50%;width:1px;background:var(--ink);opacity:.6}
+.note{font-size:13px;color:var(--muted)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:12px 0}
+.form label{font:500 12px var(--f-body);color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.btnrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button.primary,a.btn{font:500 14px var(--f-body);background:var(--accent);color:var(--bg);border:0;padding:9px 16px;border-radius:4px;cursor:pointer;text-decoration:none;display:inline-block}
+button.ghost{font:500 14px var(--f-body);background:transparent;color:var(--ink);border:1px solid var(--line);padding:8px 14px;border-radius:4px;cursor:pointer}
+.result{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.result table{min-width:0}
+.themebtn{font:12px var(--f-mono);background:none;border:1px solid var(--line);color:var(--muted);padding:3px 8px;border-radius:4px;cursor:pointer}
+header{display:flex;flex-direction:column;gap:2px}
+ul.lim{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:80ch}
+@media (prefers-reduced-motion:no-preference){.fill{transition:width .25s}}
+
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin:0 calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:8px max(16px,env(safe-area-inset-left,0px))}
+.nav .in{max-width:1120px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;justify-content:space-between}
+.nav ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 16px}
+.nav a{color:var(--ink);text-decoration:none;font:500 13px var(--f-body)}
+.nav a:hover{color:var(--accent);text-decoration:underline}
+.brand{font:600 14px var(--f-display)}
+.hero{padding:28px 0 8px;display:flex;flex-direction:column;gap:14px}
+.eyebrow{font:500 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:6px}
+.stat{border-top:3px solid var(--accent);background:var(--surface);padding:10px 12px;border-left:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stat b{display:block;font:600 28px/1.1 var(--f-display)} .stat span{font-size:13px;color:var(--muted)}
+.prose{max-width:72ch;display:flex;flex-direction:column;gap:10px}
+.prose h2{margin-top:2px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;counter-reset:s;list-style:none;padding:0;margin:10px 0 0}
+.steps li{counter-increment:s;background:var(--surface);border:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.steps li::before{content:counter(s);font:600 20px var(--f-display);color:var(--accent)}
+.steps b{font:600 14px var(--f-body)} .steps span{font-size:13px;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:10px}
+.card{background:var(--surface);border:1px solid var(--line);padding:14px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.card h3{font:600 15px var(--f-body);margin:0}
+.card p{font-size:14px}
+.cmp{display:grid;grid-template-columns:130px minmax(0,1fr);gap:6px 10px;align-items:center;font:12px var(--f-mono);margin-top:8px}
+.cmp .grp{display:flex;align-items:center;gap:6px;font:500 13px var(--f-body);grid-column:1/-1;margin-top:8px}
+.cmp .lbl{color:var(--muted)}
+.cmp .tr{position:relative;height:14px;background:var(--accent-soft)}
+.cmp .tr i{position:absolute;inset:0 auto 0 0;background:var(--c)}
+.cmp .tr em{position:absolute;right:6px;top:-1px;font-style:normal;color:var(--ink);font-size:11px}
+.foot{border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+ol.refs{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:13px;max-width:100ch}
+ol.refs a{color:var(--accent);overflow-wrap:anywhere}
+.callout{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;max-width:72ch;font-size:14px}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="nav" aria-label="Sayfa bölümleri"><div class="in">
+  <span class="brand">Akdeniz Bitkileri Atlası</span>
+  <ul><li><a href="#soru">Soru</a></li><li><a href="#yontem">Yöntem</a></li><li><a href="#bulgular">Bulgular</a></li><li><a href="#arac">Araç</a></li><li><a href="#sinir">Sınırlılıklar</a></li><li><a href="#kaynak">Kaynaklar</a></li></ul>
+  <button class="themebtn" id="theme" type="button">Tema: sistem</button>
+</div></nav>
+
+<header class="hero">
+  <span class="eyebrow">TÜBİTAK 2204-A · Kimya · Biyoçeşitlilik</span>
+  <h1>Akdeniz Kuşağı Tıbbi ve Aromatik Bitkilerindeki Sekonder Metabolitlerin Lipinski ve ADMET Özelliklerinin Keminformatik Analizi</h1>
+  <p class="lede">Zeytin yaprağı, incir sütü, kekik ve defnede bildirilen 36 bileşik, aynı yöntemle ve aynı eşiklerle yan yana karşılaştırıldı. Bu sayfa projenin sorusunu, yöntemini ve bulgularını özetler; sayfadaki araçla bileşikleri tek tek inceleyebilir, kendi bileşiğinizi de ön elemeden geçirebilirsiniz.</p>
+  <div class="stats">
+    <div class="stat"><b>36</b><span>tekil sekonder metabolit</span></div>
+    <div class="stat"><b>4</b><span>bitki grubu</span></div>
+    <div class="stat"><b>%69</b><span>Lipinski kuralını hiç ihlal etmedi (25/36)</span></div>
+    <div class="stat"><b>%89</b><span>en fazla bir ihlal (32/36)</span></div>
+    <div class="stat"><b>4/9 – 0/18</b><span>≥ 2 ihlal: zeytin yaprağı – kekik ve defne (Fisher p = 0,0072)</span></div>
+  </div>
+</header>
+
+<section class="prose" id="soru" aria-labelledby="h-soru">
+  <h2 id="h-soru">Proje sorusu</h2>
+  <p>Zeytin yaprağı, incir sütü, kekik ve defne Akdeniz kuşağında geleneksel olarak kullanılan, yaygın bitkisel materyallerdir. Her biri için bileşim ve biyolojik etki çalışmaları çoktur. Buna karşılık, farklı bitkilerdeki sekonder metabolitlerin oral ilaç benzerliğini tek bir yöntemle, aynı eşiklerle ve açık veri kaynaklarıyla yan yana karşılaştıran bir çalışma, 21 Ekim 2026 tarihli Europe PMC taramasında saptanmamıştır.</p>
+  <p><b>Hipotez.</b> H<sub>0</sub>: bitkiler arasında bileşiklerin Lipinski parametreleri bakımından fark yoktur. H<sub>1</sub>: glikozit bakımından zengin bitkide (zeytin yaprağı) kural dışı kalan bileşik oranı, uçucu monoterpen bakımından zengin bitkilerden (kekik, defne) yüksektir.</p>
+</section>
+
+<section aria-labelledby="h-yontem" id="yontem">
+  <h2 id="h-yontem">Yöntem: tekrar edilebilir bir veri hattı</h2>
+  <p class="note" style="max-width:72ch">Çalışma tamamen hesaplamalıdır (in silico); laboratuvar veya arazi çalışması içermez. Tüm adımlar Python betikleriyle yürütülmüştür.</p>
+  <ol class="steps">
+    <li><b>Bileşik seçimi</b><span>Hakemli kaynaklarda ilgili bitkide bildirilen, PubChem'de tekil CID ile temsil edilen küçük moleküller. Grup başına en az 9 bileşik.</span></li>
+    <li><b>PubChem PUG REST</b><span>MW, XLogP3, TPSA, HBD, HBA ve dönebilen bağ sayısı betikle alındı (21 Ekim 2026). Kimlikler molekül formülüyle doğrulandı: 36/36 eşleşme.</span></li>
+    <li><b>Kurallar ve filtreler</b><span>Lipinski, Veber, Egan, Ghose; QED ve PAINS uyarıları RDKit ile.</span></li>
+    <li><b>ADMET tahmini</b><span>Açık kaynaklı ADMET-AI 2.0.1. Olasılık ≥ 0,50 pozitif sayıldı.</span></li>
+    <li><b>İstatistik</b><span>Kruskal–Wallis, Holm düzeltmeli Mann–Whitney, Fisher kesin testi, Spearman korelasyonu.</span></li>
+  </ol>
+</section>
+
+<section id="bulgular" aria-labelledby="h-bulgu">
+  <h2 id="h-bulgu">Bulgular</h2>
+  <div class="cards">
+    <div class="card"><h3>Zeytin yaprağı glikozitleri kural dışı kalır</h3><p>İki veya daha fazla Lipinski ihlali yapan 4 bileşiğin tümü zeytin yaprağındadır: oleuropein, verbaskozid, rutin ve luteolin-7-O-glukozit. Şeker birimleri ve çok sayıda hidroksil grubu MW, HBD, HBA ve TPSA'yı birlikte artırır.</p></div>
+    <div class="card"><h3>Kekik ve defne en elverişli profili gösterir</h3><p>Her iki gruptaki tüm bileşikler Lipinski, Veber ve Egan ölçütlerini sağlar. Bunlar küçük, apolar ve düşük hidrojen bağı kapasitelidir. CYP inhibisyonu ise kekikte 6/9, defnede 7/10 bileşikte pozitif tahmin edilmiştir.</p></div>
+    <div class="card"><h3>İncir sütü triterpenleri sınırda kalır</h3><p>Yedi bileşik tek ihlalle (XLogP3 &gt; 5) Lipinski'ye "uyumlu" sayılır, ancak Egan kuralını geçemez. Çözünürlük tahmini çok düşüktür (ortanca logS −6,50).</p></div>
+    <div class="card"><h3>Gruplar arası fark anlamlıdır</h3><p>MW, XLogP3, TPSA, HBD ve HBA için Kruskal–Wallis p &lt; 0,001. Dönebilen bağ sayısı ve QED için anlamlı fark yoktur. Defne grubuna flavonoid eklendiğinde sonuç değişmemiştir.</p></div>
+  </div>
+  <h3 style="font:600 13px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:22px 0 0">Kural uyumu, bitki grubuna göre (uyumlu bileşik yüzdesi)</h3>
+  <div class="cmp" id="cmp" role="img" aria-label="Bitki gruplarına göre Lipinski, Veber, Egan ve Ghose uyum yüzdeleri"></div>
+  <p class="note" style="margin-top:10px;max-width:72ch">Lipinski: en fazla bir ihlal. Ghose'nin düşük uyumu kuralın alt kütle sınırından (160 Da) kaynaklanır; küçük uçucu monoterpenlerin Ghose'yi geçememesi emilim sorunu anlamına gelmez. Hesaplamalı bütünleşik filtreyi (Lipinski ≤ 1 ihlal, Veber, Egan, HIA ≥ 0,5, PAINS yok, Ames/hERG/DILI &lt; 0,5) 36 bileşikten 18'i geçmiştir: kekik 8, defne 10, zeytin yaprağı 1, incir sütü 0 (linalool iki grupta sayılmıştır).</p>
+  <div class="callout" style="margin-top:12px"><b>Filtreyi geçmek güvenlik demek değildir.</b> Filtreyi geçen metil öjenol, IARC tarafından 2023'te Grup 2A (insanlar için muhtemelen kanserojen) sınıfına alınmıştır; oysa modelin Ames olasılığı yaklaşık 0,13'tür.</div>
+</section>
+
+<section id="arac" aria-labelledby="h-arac">
+  <h2 id="h-arac" style="font:600 24px var(--f-display);margin:0 0 4px">Etkileşimli araç</h2>
+  <p class="note" style="max-width:72ch;margin-bottom:14px">Bir bitkiyi veya bileşiği seçerek kural sonuçlarını ve ADMET tahminlerini görün; kendi bileşiğinizin PubChem değerlerini girip Lipinski ve Veber ön elemesini yapın.</p>
+</section>
+<section aria-labelledby="h-groups">
+  <h2 id="h-groups" class="sr" style="position:absolute;left:-9999px">Bitki grupları</h2>
+  <div class="chips" id="chips" role="group" aria-label="Bitki filtresi"></div>
+  <div class="sumrow" id="sums" style="margin-top:14px"></div>
+</section>
+
+<section class="grid" aria-label="Dağılım ve seçili bileşik">
+  <div class="panel">
+    <h3>XLogP3 ve TPSA dağılımı</h3>
+    <div id="plot"></div>
+    <p class="note" style="margin-top:8px">Kesikli çizgi Lipinski logP eşiği (5), noktalı çizgi Veber TPSA eşiği (140 Å²). Bir noktaya tıklayarak bileşiği seçin. Daire: zeytin yaprağı, kare: incir sütü, üçgen: kekik, eşkenar dörtgen: defne (linalool kekik olarak gösterilir).</p>
+  </div>
+  <div class="panel detail" id="detail" aria-live="polite"></div>
+</section>
+
+<section aria-labelledby="h-table">
+  <div class="toolbar">
+    <div><h2 id="h-table">Bileşik tablosu</h2><p class="note" id="count"></p></div>
+    <div style="min-width:220px;flex:0 1 280px"><input type="search" id="q" placeholder="Bileşik ara (ör. karvakrol)" aria-label="Bileşik ara"></div>
+  </div>
+  <div class="tablewrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+</section>
+
+<section class="panel" aria-labelledby="h-own">
+  <h2 id="h-own">Kendi bileşiğinizi değerlendirin</h2>
+  <p class="note">PubChem'de bileşiğin sayfasını açın ve “Computed Properties” bölümündeki değerleri aşağıya yazın. Araç, Lipinski ve Veber sonuçlarını hesaplar. Egan ve Ghose için WLogP ve molar kırılma gerekir, bu araçta hesaplanmaz.</p>
+  <div class="form">
+    <label>Hazır örnek seç (PubChem değerleri, 36 bileşik dışından)<select id="o-ex"><option value="">Elle gireceğim</option></select></label>
+    <label>Ad (isteğe bağlı)<input type="text" id="o-name" value="Örnek bileşik"></label>
+    <label>Molekül kütlesi (Da)<input type="number" step="any" id="o-mw" value="450"></label>
+    <label>XLogP3<input type="number" step="any" id="o-x" value="5.4"></label>
+    <label>TPSA (Å²)<input type="number" step="any" id="o-t" value="60"></label>
+    <label>H bağı verici<input type="number" step="1" id="o-hbd" value="1"></label>
+    <label>H bağı alıcı<input type="number" step="1" id="o-hba" value="4"></label>
+    <label>Dönebilen bağ<input type="number" step="1" id="o-rot" value="6"></label>
+  </div>
+  <div class="btnrow">
+    <button class="primary" id="o-go" type="button">Değerlendir</button>
+    <a class="btn" href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem'i aç</a>
+    <span class="note">Başlangıç değerleri örnektir.</span>
+  </div>
+  <div class="result" id="o-res" aria-live="polite"></div>
+</section>
+
+
+<section id="sinir" aria-labelledby="h-lim">
+  <h2 id="h-lim">Sınırlılıklar ve nasıl okunmalı</h2>
+  <ul class="lim">
+    <li>Çalışma tamamen in silico'dur; deneysel doğrulama içermez. Sonuçlar bir ön elemedir: kuralları geçmek bir bileşiğin etkili veya güvenli olduğu anlamına gelmez.</li>
+    <li>ADMET-AI çıktıları olasılıksaldır ve bu bitki bileşik sınıfları için bir kontrol seti veya ikinci bir araçla (SwissADME, pkCSM) sınanmamıştır. XLogP3 değeri çok yüksek triterpenlerde model uygulanabilirlik alanının dışına çıkmış olabilir.</li>
+    <li>P-gp sütunu P-glikoprotein inhibisyonunu gösterir, substratlığı değil. Olasılık ≥ 0,50 "pozitif" sayılır.</li>
+    <li>Gruplar farklı kaynak matrislerinden gelir (fenolik ekstrakt, lateks, uçucu yağ); gruplar arası fark kısmen bu matris farkını yansıtır. Bileşikler bitkideki bollukları ağırlıklandırılmadan değerlendirilmiştir.</li>
+    <li>Grup büyüklükleri küçüktür (9–10 bileşik); p değerleri keşifseldir. İncir sütünün ana bileşeni ficin bir enzimdir ve kapsam dışıdır.</li>
+    <li>Lipinski ihlali PubChem değerleriyle sayılır: MW &gt; 500, XLogP3 &gt; 5, HBD &gt; 5, HBA &gt; 10. Veber: dönebilen bağ ≤ 10 ve TPSA ≤ 140 Å². Egan ve Ghose sonuçları araçtaki kendi bileşik formunda hesaplanmaz.</li>
+  </ul>
+</section>
+
+<section id="kaynak" aria-labelledby="h-kay">
+  <h2 id="h-kay">Veri, yapay zekâ kullanımı ve kaynaklar</h2>
+  <div class="prose">
+    <p><b>Yapay zekâ kullanımı.</b> Projede üretken yapay zekâ araçları kullanılmıştır: literatür taraması, PubChem verisini alan betiklerin yazılması, hesaplamaların ve şekillerin üretilmesi ve metin taslağı için. Proje fikri, bileşik seçim ölçütleri ve araştırma soruları proje ekibine aittir. Tahmin aşamasında üretken olmayan, açık kaynaklı ADMET-AI ve RDKit kullanılmıştır. Kaynak künyeleri DOI kayıtlarıyla, bileşik kimlikleri PubChem molekül formülleriyle doğrulanmıştır.</p>
+    <p><b>Veri.</b> Fizikokimyasal özellikler PubChem'den 21 Ekim 2026'da alınmıştır. Bileşik düzeyindeki tüm sonuçlar proje raporunun ek belgelerindedir.</p>
+  </div>
+  <h3 style="font:600 13px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:18px 0 0">Başlıca kaynaklar</h3>
+  <ol class="refs">
+    <li>Lipinski, C. A. vd. (2001). Adv. Drug Deliv. Rev., 46, 3–26. <a href="https://doi.org/10.1016/S0169-409X(00)00129-0" target="_blank" rel="noopener">doi:10.1016/S0169-409X(00)00129-0</a></li>
+    <li>Veber, D. F. vd. (2002). J. Med. Chem., 45, 2615–2623. <a href="https://doi.org/10.1021/jm020017n" target="_blank" rel="noopener">doi:10.1021/jm020017n</a></li>
+    <li>Egan, W. J. vd. (2000). J. Med. Chem., 43, 3867–3877. <a href="https://doi.org/10.1021/jm000292e" target="_blank" rel="noopener">doi:10.1021/jm000292e</a></li>
+    <li>Ghose, A. K. vd. (1999). J. Comb. Chem., 1, 55–68. <a href="https://doi.org/10.1021/cc9800071" target="_blank" rel="noopener">doi:10.1021/cc9800071</a></li>
+    <li>Kim, S. vd. (2023). PubChem 2023 update. Nucleic Acids Res., 51, D1373–D1380. <a href="https://doi.org/10.1093/nar/gkac956" target="_blank" rel="noopener">doi:10.1093/nar/gkac956</a></li>
+    <li>Swanson, K. vd. (2024). ADMET-AI. Bioinformatics, 40(7), btae416. <a href="https://doi.org/10.1093/bioinformatics/btae416" target="_blank" rel="noopener">doi:10.1093/bioinformatics/btae416</a></li>
+    <li>Doak, B. C. vd. (2014). Oral druggable space beyond the Rule of 5. Chem. Biol., 21, 1115–1142. <a href="https://doi.org/10.1016/j.chembiol.2014.08.013" target="_blank" rel="noopener">doi:10.1016/j.chembiol.2014.08.013</a></li>
+    <li>Orak, H. H. vd. (2019). Molecules, 24(6), 1130. <a href="https://doi.org/10.3390/molecules24061130" target="_blank" rel="noopener">doi:10.3390/molecules24061130</a></li>
+    <li>Riboli, E. vd. (2023). Carcinogenicity of aspartame, methyleugenol, and isoeugenol. Lancet Oncol., 24, 848–850. <a href="https://doi.org/10.1016/S1470-2045(23)00341-8" target="_blank" rel="noopener">doi:10.1016/S1470-2045(23)00341-8</a></li>
+  </ol>
+  <p class="note" style="margin-top:8px">Bileşik kaynaklarının (zeytin, incir, kekik, defne bileşimi) ve diğer atıfların tam listesi proje raporunda yer alır.</p>
+</section>
+
+<footer class="foot"><span>TÜBİTAK 2204-A Lise Öğrencileri Araştırma Projeleri Yarışması kapsamında hazırlanmıştır.</span><span>Sayfadaki sonuçlar araştırma amaçlı bir ön elemedir; tıbbi tavsiye değildir.</span></footer>
+</div>
+<script>
+const DATA=[{"no": 1, "name": "Oleuropein", "cid": 5281544, "formula": "C25H32O13", "cls": "Sekoiridoid", "plants": ["Zeytin yaprağı"], "mw": 540.5, "x": -0.4, "tpsa": 202.0, "hbd": 6, "hba": 13, "rot": 11, "lip": 3, "veber": false, "egan": false, "ghose": false, "qed": 0.13, "adm": [0.38, 0.41, 0.16, 0.09, 0.01, 0.04, 0.11, 0.09, 0.2, 0.51, 0.62, 0.38], "pains": true, "screen": false}, {"no": 2, "name": "Hidroksitirozol", "cid": 82755, "formula": "C8H10O3", "cls": "Fenil etanoid", "plants": ["Zeytin yaprağı"], "mw": 154.2, "x": -0.7, "tpsa": 60.7, "hbd": 3, "hba": 3, "rot": 2, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.55, "adm": [0.99, 0.72, 0.42, 0.01, 0.11, 0.02, 0.03, 0.04, 0.02, 0.09, 0.38, 0.15], "pains": true, "screen": false}, {"no": 3, "name": "Tirozol", "cid": 10393, "formula": "C8H10O2", "cls": "Fenil etanoid", "plants": ["Zeytin yaprağı"], "mw": 138.2, "x": 0.4, "tpsa": 40.5, "hbd": 2, "hba": 2, "rot": 2, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.64, "adm": [1.0, 0.8, 0.5, 0.01, 0.08, 0.03, 0.05, 0.04, 0.0, 0.06, 0.1, 0.17], "pains": false, "screen": true}, {"no": 4, "name": "Verbaskozid (akteozid)", "cid": 5281800, "formula": "C29H36O15", "cls": "Fenilpropanoid glikozit", "plants": ["Zeytin yaprağı"], "mw": 624.6, "x": -0.5, "tpsa": 245.0, "hbd": 9, "hba": 15, "rot": 11, "lip": 3, "veber": false, "egan": false, "ghose": false, "qed": 0.09, "adm": [0.18, 0.14, 0.03, 0.02, 0.0, 0.01, 0.03, 0.01, 0.03, 0.36, 0.68, 0.32], "pains": true, "screen": false}, {"no": 5, "name": "Luteolin", "cid": 5280445, "formula": "C15H10O6", "cls": "Flavonoid", "plants": ["Zeytin yaprağı"], "mw": 286.2, "x": 1.4, "tpsa": 107.0, "hbd": 4, "hba": 6, "rot": 1, "lip": 0, "veber": true, "egan": true, "ghose": true, "qed": 0.51, "adm": [1.0, 0.46, 0.06, 0.12, 0.95, 0.45, 0.45, 0.32, 0.65, 0.38, 0.48, 0.86], "pains": true, "screen": false}, {"no": 6, "name": "Luteolin-7-O-glukozit", "cid": 5280637, "formula": "C21H20O11", "cls": "Flavonoid", "plants": ["Zeytin yaprağı"], "mw": 448.4, "x": 0.5, "tpsa": 186.0, "hbd": 7, "hba": 11, "rot": 4, "lip": 2, "veber": false, "egan": false, "ghose": true, "qed": 0.26, "adm": [1.0, 0.46, 0.06, 0.12, 0.95, 0.45, 0.45, 0.32, 0.65, 0.38, 0.48, 0.86], "pains": true, "screen": false}, {"no": 7, "name": "Apigenin", "cid": 5280443, "formula": "C15H10O5", "cls": "Flavonoid", "plants": ["Zeytin yaprağı"], "mw": 270.2, "x": 1.7, "tpsa": 87.0, "hbd": 3, "hba": 5, "rot": 1, "lip": 0, "veber": true, "egan": true, "ghose": true, "qed": 0.63, "adm": [1.0, 0.55, 0.07, 0.25, 0.94, 0.57, 0.63, 0.28, 0.53, 0.34, 0.27, 0.88], "pains": false, "screen": false}, {"no": 8, "name": "Rutin", "cid": 5280805, "formula": "C27H30O16", "cls": "Flavonoid", "plants": ["Zeytin yaprağı"], "mw": 610.5, "x": -1.3, "tpsa": 266.0, "hbd": 10, "hba": 16, "rot": 6, "lip": 3, "veber": false, "egan": false, "ghose": false, "qed": 0.14, "adm": [0.21, 0.13, 0.03, 0.02, 0.0, 0.01, 0.03, 0.01, 0.01, 0.47, 0.7, 0.63], "pains": true, "screen": false}, {"no": 9, "name": "Oleanolik asit", "cid": 10494, "formula": "C30H48O3", "cls": "Triterpen", "plants": ["Zeytin yaprağı"], "mw": 456.7, "x": 7.5, "tpsa": 57.5, "hbd": 2, "hba": 3, "rot": 1, "lip": 1, "veber": true, "egan": false, "ghose": false, "qed": 0.41, "adm": [1.0, 0.76, 0.64, 0.61, 0.0, 0.02, 0.01, 0.02, 0.03, 0.61, 0.15, 0.09], "pains": false, "screen": false}, {"no": 10, "name": "Psoralen", "cid": 6199, "formula": "C11H6O3", "cls": "Furokumarin", "plants": ["İncir sütü"], "mw": 186.2, "x": 2.3, "tpsa": 39.4, "hbd": 0, "hba": 3, "rot": 0, "lip": 0, "veber": true, "egan": true, "ghose": true, "qed": 0.51, "adm": [1.0, 0.9, 0.95, 0.05, 0.98, 0.1, 0.37, 0.07, 0.08, 0.17, 0.39, 0.84], "pains": false, "screen": false}, {"no": 11, "name": "Bergapten (5-MOP)", "cid": 2355, "formula": "C12H8O4", "cls": "Furokumarin", "plants": ["İncir sütü"], "mw": 216.2, "x": 2.3, "tpsa": 48.7, "hbd": 0, "hba": 4, "rot": 1, "lip": 0, "veber": true, "egan": true, "ghose": true, "qed": 0.59, "adm": [1.0, 0.89, 0.94, 0.12, 0.98, 0.18, 0.54, 0.12, 0.24, 0.29, 0.43, 0.86], "pains": false, "screen": false}, {"no": 12, "name": "Ksantotoksin (8-MOP)", "cid": 4114, "formula": "C12H8O4", "cls": "Furokumarin", "plants": ["İncir sütü"], "mw": 216.2, "x": 1.9, "tpsa": 48.7, "hbd": 0, "hba": 4, "rot": 1, "lip": 0, "veber": true, "egan": true, "ghose": true, "qed": 0.59, "adm": [1.0, 0.9, 0.96, 0.09, 0.99, 0.19, 0.55, 0.09, 0.19, 0.23, 0.39, 0.88], "pains": false, "screen": false}, {"no": 13, "name": "Lupeol", "cid": 259846, "formula": "C30H50O", "cls": "Triterpen", "plants": ["İncir sütü"], "mw": 426.7, "x": 9.9, "tpsa": 20.2, "hbd": 1, "hba": 1, "rot": 1, "lip": 1, "veber": true, "egan": false, "ghose": false, "qed": 0.42, "adm": [1.0, 0.67, 0.89, 0.72, 0.01, 0.05, 0.05, 0.04, 0.09, 0.76, 0.11, 0.04], "pains": false, "screen": false}, {"no": 14, "name": "Lupeol asetat", "cid": 92157, "formula": "C32H52O2", "cls": "Triterpen", "plants": ["İncir sütü"], "mw": 468.8, "x": 10.4, "tpsa": 26.3, "hbd": 0, "hba": 2, "rot": 3, "lip": 1, "veber": true, "egan": false, "ghose": false, "qed": 0.3, "adm": [1.0, 0.67, 0.93, 0.77, 0.01, 0.04, 0.03, 0.06, 0.11, 0.79, 0.17, 0.05], "pains": false, "screen": false}, {"no": 15, "name": "β-Amirin", "cid": 73145, "formula": "C30H50O", "cls": "Triterpen", "plants": ["İncir sütü"], "mw": 426.7, "x": 9.2, "tpsa": 20.2, "hbd": 1, "hba": 1, "rot": 0, "lip": 1, "veber": true, "egan": false, "ghose": false, "qed": 0.39, "adm": [1.0, 0.66, 0.95, 0.85, 0.0, 0.01, 0.01, 0.05, 0.06, 0.9, 0.12, 0.03], "pains": false, "screen": false}, {"no": 16, "name": "α-Amirin", "cid": 73170, "formula": "C30H50O", "cls": "Triterpen", "plants": ["İncir sütü"], "mw": 426.7, "x": 9.0, "tpsa": 20.2, "hbd": 1, "hba": 1, "rot": 0, "lip": 1, "veber": true, "egan": false, "ghose": false, "qed": 0.39, "adm": [1.0, 0.69, 0.95, 0.84, 0.0, 0.01, 0.01, 0.06, 0.1, 0.9, 0.15, 0.04], "pains": false, "screen": false}, {"no": 17, "name": "Lanosterol", "cid": 246983, "formula": "C30H50O", "cls": "Triterpen", "plants": ["İncir sütü"], "mw": 426.7, "x": 8.9, "tpsa": 20.2, "hbd": 1, "hba": 1, "rot": 4, "lip": 1, "veber": true, "egan": false, "ghose": false, "qed": 0.45, "adm": [1.0, 0.61, 0.97, 0.81, 0.0, 0.01, 0.01, 0.15, 0.17, 0.92, 0.16, 0.05], "pains": false, "screen": false}, {"no": 18, "name": "β-Sitosterol", "cid": 222284, "formula": "C29H50O", "cls": "Fitosterol", "plants": ["İncir sütü"], "mw": 414.7, "x": 9.3, "tpsa": 20.2, "hbd": 1, "hba": 1, "rot": 6, "lip": 1, "veber": true, "egan": false, "ghose": false, "qed": 0.44, "adm": [1.0, 0.64, 0.9, 0.74, 0.0, 0.01, 0.01, 0.13, 0.05, 0.84, 0.07, 0.03], "pains": false, "screen": false}, {"no": 19, "name": "Karvakrol", "cid": 10364, "formula": "C10H14O", "cls": "Monoterpen fenol", "plants": ["Kekik"], "mw": 150.2, "x": 3.1, "tpsa": 20.2, "hbd": 1, "hba": 1, "rot": 1, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.65, "adm": [1.0, 0.88, 0.92, 0.05, 0.84, 0.16, 0.66, 0.25, 0.05, 0.31, 0.07, 0.18], "pains": false, "screen": true}, {"no": 20, "name": "Timol", "cid": 6989, "formula": "C10H14O", "cls": "Monoterpen fenol", "plants": ["Kekik"], "mw": 150.2, "x": 3.3, "tpsa": 20.2, "hbd": 1, "hba": 1, "rot": 1, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.65, "adm": [1.0, 0.86, 0.94, 0.05, 0.89, 0.2, 0.78, 0.25, 0.05, 0.29, 0.06, 0.19], "pains": false, "screen": true}, {"no": 21, "name": "p-Simen", "cid": 7463, "formula": "C10H14", "cls": "Monoterpen hidrokarbon", "plants": ["Kekik"], "mw": 134.2, "x": 4.1, "tpsa": 0.0, "hbd": 0, "hba": 0, "rot": 1, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.55, "adm": [1.0, 0.9, 0.99, 0.04, 0.92, 0.1, 0.76, 0.07, 0.02, 0.24, 0.05, 0.2], "pains": false, "screen": true}, {"no": 22, "name": "γ-Terpinen", "cid": 7461, "formula": "C10H16", "cls": "Monoterpen hidrokarbon", "plants": ["Kekik"], "mw": 136.2, "x": 2.8, "tpsa": 0.0, "hbd": 0, "hba": 0, "rot": 1, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.48, "adm": [1.0, 0.83, 0.99, 0.04, 0.86, 0.13, 0.75, 0.12, 0.04, 0.3, 0.09, 0.13], "pains": false, "screen": true}, {"no": 23, "name": "Mirsen", "cid": 31253, "formula": "C10H16", "cls": "Monoterpen hidrokarbon", "plants": ["Kekik"], "mw": 136.2, "x": 4.3, "tpsa": 0.0, "hbd": 0, "hba": 0, "rot": 4, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.41, "adm": [1.0, 0.66, 0.94, 0.01, 0.5, 0.09, 0.26, 0.12, 0.03, 0.2, 0.19, 0.07], "pains": false, "screen": true}, {"no": 24, "name": "Linalool", "cid": 6549, "formula": "C10H18O", "cls": "Monoterpen alkol", "plants": ["Kekik", "Defne"], "mw": 154.2, "x": 2.7, "tpsa": 20.2, "hbd": 1, "hba": 1, "rot": 4, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.62, "adm": [1.0, 0.8, 0.95, 0.01, 0.13, 0.02, 0.09, 0.07, 0.0, 0.19, 0.05, 0.04], "pains": false, "screen": true}, {"no": 25, "name": "Borneol", "cid": 64685, "formula": "C10H18O", "cls": "Monoterpen alkol", "plants": ["Kekik"], "mw": 154.2, "x": 2.7, "tpsa": 20.2, "hbd": 1, "hba": 1, "rot": 0, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.57, "adm": [1.0, 0.81, 0.99, 0.03, 0.06, 0.05, 0.28, 0.04, 0.01, 0.22, 0.05, 0.07], "pains": false, "screen": true}, {"no": 26, "name": "Terpinen-4-ol", "cid": 11230, "formula": "C10H18O", "cls": "Monoterpen alkol", "plants": ["Kekik"], "mw": 154.2, "x": 2.2, "tpsa": 20.2, "hbd": 1, "hba": 1, "rot": 1, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.57, "adm": [1.0, 0.9, 0.98, 0.02, 0.18, 0.04, 0.24, 0.03, 0.0, 0.15, 0.08, 0.12], "pains": false, "screen": true}, {"no": 27, "name": "β-Karyofilen", "cid": 5281515, "formula": "C15H24", "cls": "Seskiterpen", "plants": ["Kekik"], "mw": 204.3, "x": 4.4, "tpsa": 0.0, "hbd": 0, "hba": 0, "rot": 0, "lip": 0, "veber": true, "egan": true, "ghose": true, "qed": 0.5, "adm": [1.0, 0.72, 0.99, 0.16, 0.5, 0.12, 0.53, 0.18, 0.06, 0.59, 0.05, 0.07], "pains": false, "screen": false}, {"no": 28, "name": "1,8-Sineol (okaliptol)", "cid": 2758, "formula": "C10H18O", "cls": "Monoterpen eter", "plants": ["Defne"], "mw": 154.2, "x": 2.5, "tpsa": 9.2, "hbd": 0, "hba": 1, "rot": 0, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.52, "adm": [1.0, 0.88, 0.99, 0.03, 0.13, 0.03, 0.38, 0.01, 0.0, 0.17, 0.04, 0.1], "pains": false, "screen": true}, {"no": 29, "name": "Sabinen", "cid": 18818, "formula": "C10H16", "cls": "Monoterpen hidrokarbon", "plants": ["Defne"], "mw": 136.2, "x": 3.1, "tpsa": 0.0, "hbd": 0, "hba": 0, "rot": 1, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.49, "adm": [1.0, 0.77, 0.99, 0.03, 0.6, 0.09, 0.45, 0.09, 0.02, 0.26, 0.08, 0.09], "pains": false, "screen": true}, {"no": 30, "name": "α-Pinen", "cid": 6654, "formula": "C10H16", "cls": "Monoterpen hidrokarbon", "plants": ["Defne"], "mw": 136.2, "x": 2.8, "tpsa": 0.0, "hbd": 0, "hba": 0, "rot": 0, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.45, "adm": [1.0, 0.77, 0.99, 0.06, 0.29, 0.1, 0.65, 0.07, 0.02, 0.33, 0.05, 0.09], "pains": false, "screen": true}, {"no": 31, "name": "β-Pinen", "cid": 14896, "formula": "C10H16", "cls": "Monoterpen hidrokarbon", "plants": ["Defne"], "mw": 136.2, "x": 3.1, "tpsa": 0.0, "hbd": 0, "hba": 0, "rot": 0, "lip": 0, "veber": true, "egan": true, "ghose": false, "qed": 0.45, "adm": [1.0, 0.77, 0.99, 0.03, 0.3, 0.06, 0.46, 0.08, 0.01, 0.28, 0.03, 0.07], "pains": false, "screen": true}, {"no": 32, "name": "α-Terpinil asetat", "cid": 111037, "formula": "C12H20O2", "cls": "Monoterpen ester", "plants": ["Defne"], "mw": 196.3, "x": 2.4, "tpsa": 26.3, "hbd": 0, "hba": 2, "rot": 3, "lip": 0, "veber": true, "egan": true, "ghose": true, "qed": 0.5, "adm": [1.0, 0.77, 0.99, 0.06, 0.21, 0.11, 0.58, 0.09, 0.02, 0.31, 0.03, 0.1], "pains": false, "screen": true}, {"no": 33, "name": "Öjenol", "cid": 3314, "formula": "C10H12O2", "cls": "Fenilpropen", "plants": ["Defne"], "mw": 164.2, "x": 2.0, "tpsa": 29.5, "hbd": 1, "hba": 2, "rot": 3, "lip": 0, "veber": true, "egan": true, "ghose": true, "qed": 0.69, "adm": [1.0, 0.89, 0.88, 0.02, 0.64, 0.08, 0.38, 0.16, 0.08, 0.18, 0.14, 0.2], "pains": false, "screen": true}, {"no": 34, "name": "Metil öjenol", "cid": 7127, "formula": "C11H14O2", "cls": "Fenilpropen", "plants": ["Defne"], "mw": 178.2, "x": 2.5, "tpsa": 18.5, "hbd": 0, "hba": 2, "rot": 4, "lip": 0, "veber": true, "egan": true, "ghose": true, "qed": 0.66, "adm": [1.0, 0.94, 0.98, 0.02, 0.71, 0.05, 0.56, 0.05, 0.12, 0.22, 0.13, 0.29], "pains": false, "screen": true}, {"no": 35, "name": "Kostunolid", "cid": 5281437, "formula": "C15H20O2", "cls": "Seskiterpen lakton", "plants": ["Defne"], "mw": 232.3, "x": 2.1, "tpsa": 26.3, "hbd": 0, "hba": 2, "rot": 0, "lip": 0, "veber": true, "egan": true, "ghose": true, "qed": 0.36, "adm": [1.0, 0.71, 0.96, 0.17, 0.66, 0.35, 0.7, 0.15, 0.29, 0.38, 0.25, 0.25], "pains": false, "screen": true}, {"no": 36, "name": "Dehidrokostus lakton", "cid": 73174, "formula": "C15H18O2", "cls": "Seskiterpen lakton", "plants": ["Defne"], "mw": 230.3, "x": 2.6, "tpsa": 26.3, "hbd": 0, "hba": 2, "rot": 0, "lip": 0, "veber": true, "egan": true, "ghose": true, "qed": 0.36, "adm": [1.0, 0.78, 0.93, 0.09, 0.52, 0.15, 0.3, 0.07, 0.14, 0.21, 0.29, 0.18], "pains": false, "screen": true}];
+const PL={"Zeytin yaprağı":{c:"var(--z)",s:"c"},"İncir sütü":{c:"var(--i)",s:"s"},"Kekik":{c:"var(--k)",s:"t"},"Defne":{c:"var(--d)",s:"d"}};
+const ADMN=["HIA","F20%","BBB","P-gp inh.","CYP1A2","CYP2C9","CYP2C19","CYP2D6","CYP3A4","hERG","Ames","DILI"];
+const FLAGIDX=[3,4,5,6,7,8,9,10,11]; // pozitif = dikkat gerektiren
+const state={plant:null,sel:DATA.find(d=>d.name==="Oleuropein").no,sort:{k:"no",dir:1},q:""};
+const $=s=>document.querySelector(s);
+const fmt=(v,n=1)=>Number(v).toFixed(n).replace(".",",").replace("-","−");
+const inPlant=(d)=>!state.plant||d.plants.includes(state.plant);
+function pill(ok,txt){return `<span class="pill ${ok?"p-ok":"p-warn"}">${txt}</span>`}
+function lipPill(n){return `<span class="pill ${n===0?"p-ok":n===1?"p-warn":"p-bad"}">${n} ihlal</span>`}
+
+// ---- chips + özet
+function renderChips(){
+  const names=["Tümü",...Object.keys(PL)];
+  $("#chips").innerHTML=names.map(n=>{const on=(n==="Tümü"&&!state.plant)||n===state.plant;const dot=PL[n]?`<span class="dot" style="background:${PL[n].c}"></span>`:"";return `<button type="button" class="chip" aria-pressed="${on}" data-p="${n}">${dot}${n}</button>`}).join("");
+  $("#chips").querySelectorAll("button").forEach(b=>b.onclick=()=>{state.plant=b.dataset.p==="Tümü"?null:b.dataset.p;renderAll()});
+}
+function renderSums(){
+  $("#sums").innerHTML=Object.keys(PL).map(n=>{
+    const g=DATA.filter(d=>d.plants.includes(n));const z=g.filter(d=>d.lip===0).length,b=g.filter(d=>d.lip>=2).length;
+    return `<div class="sum" style="--c:${PL[n].c}"><b>${n}</b><span>${g.length} bileşik · ${z} tam uyumlu · ${b} bileşikte ≥2 ihlal</span></div>`}).join("");
+}
+// ---- dağılım grafiği (ölçekli SVG)
+function renderPlot(){
+  const W=640,H=420,m={l:48,r:16,t:14,b:40},xmin=-2,xmax=11.5,ymin=0,ymax=280;
+  const X=v=>m.l+(v-xmin)/(xmax-xmin)*(W-m.l-m.r), Y=v=>H-m.b-(v-ymin)/(ymax-ymin)*(H-m.t-m.b);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="XLogP3 ve TPSA dağılım grafiği">`;
+  for(let v=0;v<=280;v+=40){s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${m.l-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`}
+  for(let v=-2;v<=11;v+=2){s+=`<line y1="${m.t}" y2="${H-m.b}" x1="${X(v)}" x2="${X(v)}" stroke="var(--line)" stroke-width="1" opacity=".5"/><text x="${X(v)}" y="${H-m.b+16}" text-anchor="middle">${v}</text>`}
+  s+=`<line x1="${X(5)}" x2="${X(5)}" y1="${m.t}" y2="${H-m.b}" stroke="var(--ink)" stroke-dasharray="6 4" stroke-width="1.2"/><text x="${X(5)+4}" y="${m.t+10}">logP = 5</text>`;
+  s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${Y(140)}" y2="${Y(140)}" stroke="var(--ink)" stroke-dasharray="2 3" stroke-width="1.2"/><text x="${W-m.r-4}" y="${Y(140)-5}" text-anchor="end">TPSA = 140</text>`;
+  s+=`<text x="${(m.l+W-m.r)/2}" y="${H-6}" text-anchor="middle">XLogP3</text><text transform="rotate(-90)" x="${-(H/2)}" y="12" text-anchor="middle">TPSA (Å²)</text>`;
+  DATA.forEach(d=>{
+    const p=d.plants[0],c=PL[p].c,on=inPlant(d),sel=d.no===state.sel,cx=X(d.x),cy=Y(d.tpsa),op=on?1:.15;
+    let shape;
+    if(PL[p].s==="s")shape=`<rect x="${cx-5}" y="${cy-5}" width="10" height="10" fill="${c}" stroke="var(--surface)" stroke-width="1"/>`;
+    else if(PL[p].s==="t")shape=`<path d="M${cx} ${cy-6.5}L${cx+6} ${cy+5}L${cx-6} ${cy+5}Z" fill="${c}" stroke="var(--surface)" stroke-width="1"/>`;
+    else if(PL[p].s==="d")shape=`<path d="M${cx} ${cy-7}L${cx+6} ${cy}L${cx} ${cy+7}L${cx-6} ${cy}Z" fill="${c}" stroke="var(--surface)" stroke-width="1"/>`;
+    else shape=`<circle cx="${cx}" cy="${cy}" r="5.5" fill="${c}" stroke="var(--surface)" stroke-width="1"/>`;
+    s+=`<g class="pt" tabindex="${on?0:-1}" data-no="${d.no}" opacity="${op}" role="button" aria-label="${d.name}">${sel?`<circle cx="${cx}" cy="${cy}" r="11" fill="none" stroke="var(--ink)" stroke-width="2"/>`:""}${shape}<title>${d.name}</title></g>`;
+  });
+  [["Oleuropein"],["Rutin"],["Verbaskozid (akteozid)"],["Lupeol asetat"],["Oleanolik asit"]].forEach(([n])=>{const d=DATA.find(x=>x.name===n);if(d&&inPlant(d)){const right=d.x>6;s+=`<text x="${X(d.x)+(right?-9:9)}" y="${Y(d.tpsa)-8}" text-anchor="${right?"end":"start"}">${d.name.replace(" (akteozid)","")}</text>`}});
+  s+=`</svg>`;
+  $("#plot").innerHTML=s;
+  $("#plot").querySelectorAll(".pt").forEach(g=>{const f=()=>{state.sel=+g.dataset.no;renderAll()};g.onclick=f;g.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();f()}}});
+}
+// ---- detay
+function renderDetail(){
+  const d=DATA.find(x=>x.no===state.sel);
+  const rules=[["Lipinski",d.lip<=1,d.lip===0?"0 ihlal":d.lip+" ihlal"],["Veber",d.veber,d.veber?"uyumlu":"uyumsuz"],["Egan",d.egan,d.egan?"uyumlu":"uyumsuz"],["Ghose",d.ghose,d.ghose?"uyumlu":"uyumsuz"]];
+  const bars=ADMN.map((n,i)=>{const v=d.adm[i],flag=FLAGIDX.includes(i)&&v>=.5;return `<div class="bar"><span>${n}</span><div class="track" title="${n}: ${fmt(v,2)}"><div class="fill ${flag?"flag":""}" style="width:${Math.max(1,v*100)}%"></div><div class="half"></div></div><span style="text-align:right">${fmt(v,2)}</span></div>`}).join("");
+  $("#detail").innerHTML=`<h3>Seçili bileşik</h3>
+  <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap"><h2 style="margin:0">${d.name}</h2><span class="note">${d.plants.join(", ")}</span></div>
+  <p class="note" style="margin:2px 0 12px">${d.cls} · ${d.formula} · <a href="https://pubchem.ncbi.nlm.nih.gov/compound/${d.cid}" target="_blank" rel="noopener" style="color:var(--accent)">PubChem CID ${d.cid}</a></p>
+  <dl><dt>MW</dt><dd>${fmt(d.mw)} Da</dd><dt>XLogP3</dt><dd>${fmt(d.x)}</dd><dt>TPSA</dt><dd>${fmt(d.tpsa)} Å²</dd><dt>HBD / HBA</dt><dd>${d.hbd} / ${d.hba}</dd><dt>Dönebilen bağ</dt><dd>${d.rot}</dd><dt>QED</dt><dd>${fmt(d.qed,2)}</dd></dl>
+  <div class="rules">${rules.map(r=>`<span class="pill ${r[0]==="Lipinski"&&d.lip>=2?"p-bad":r[1]?"p-ok":"p-warn"}">${r[0]}: ${r[2]}</span>`).join("")}${d.pains?`<span class="pill p-warn">PAINS uyarısı</span>`:""}</div>
+  <p class="note" style="margin-bottom:6px">ADMET-AI olasılıkları (çizgi: 0,50 eşiği; turuncu: pozitif ve dikkat gerektiren uç nokta)</p>${bars}
+  <p style="margin-top:10px">${d.screen?`<span class="pill p-ok">Bütünleşik ön elemeyi geçti</span>`:`<span class="pill p-na">Bütünleşik ön elemeyi geçemedi</span>`}</p>`;
+}
+// ---- tablo
+const COLS=[["no","No"],["name","Bileşik"],["mw","MW"],["x","XLogP3"],["tpsa","TPSA"],["hbd","HBD"],["hba","HBA"],["rot","RotB"],["lip","Lipinski"],["veber","Veber"],["egan","Egan"],["qed","QED"]];
+function renderTable(){
+  const thead=`<tr>${COLS.map(([k,l])=>`<th scope="col" aria-sort="${state.sort.k===k?(state.sort.dir>0?"ascending":"descending"):"none"}"><button type="button" data-k="${k}">${l}${state.sort.k===k?(state.sort.dir>0?" ▲":" ▼"):""}</button></th>`).join("")}</tr>`;
+  $("#tbl thead").innerHTML=thead;
+  const q=state.q.trim().toLocaleLowerCase("tr");
+  let rows=DATA.filter(d=>inPlant(d)&&(!q||d.name.toLocaleLowerCase("tr").includes(q)));
+  const {k,dir}=state.sort;rows=[...rows].sort((a,b)=>{const A=a[k],B=b[k];return (typeof A==="string"?A.localeCompare(B,"tr"):(+A)-(+B))*dir});
+  $("#count").textContent=`${rows.length} bileşik gösteriliyor (başlığa tıklayarak sıralayın)`;
+  $("#tbl tbody").innerHTML=rows.map(d=>`<tr data-no="${d.no}" aria-selected="${d.no===state.sel}" tabindex="0"><td class="num">${d.no}</td><td>${d.name}</td><td class="num">${fmt(d.mw)}</td><td class="num">${fmt(d.x)}</td><td class="num">${fmt(d.tpsa)}</td><td class="num">${d.hbd}</td><td class="num">${d.hba}</td><td class="num">${d.rot}</td><td>${lipPill(d.lip)}</td><td>${pill(d.veber,d.veber?"+":"−")}</td><td>${pill(d.egan,d.egan?"+":"−")}</td><td class="num">${fmt(d.qed,2)}</td></tr>`).join("");
+  $("#tbl thead").querySelectorAll("button").forEach(b=>b.onclick=()=>{const kk=b.dataset.k;state.sort=state.sort.k===kk?{k:kk,dir:-state.sort.dir}:{k:kk,dir:1};renderTable()});
+  $("#tbl tbody").querySelectorAll("tr").forEach(tr=>{const f=()=>{state.sel=+tr.dataset.no;renderAll()};tr.onclick=f;tr.onkeydown=e=>{if(e.key==="Enter"){f()}}});
+}
+$("#q").addEventListener("input",e=>{state.q=e.target.value;renderTable()});
+// ---- kendi bileşiğin
+function evalOwn(){
+  const g=id=>parseFloat($(id).value.replace(",","."));
+  const v={mw:g("#o-mw"),x:g("#o-x"),t:g("#o-t"),hd:g("#o-hbd"),ha:g("#o-hba"),rb:g("#o-rot")};
+  const nm=$("#o-name").value.trim()||"Bileşik";
+  if(Object.values(v).some(Number.isNaN)){$("#o-res").innerHTML=`<p class="pill p-bad">Tüm alanlara sayı girin.</p>`;return}
+  const chk=[["Molekül kütlesi ≤ 500 Da",v.mw<=500,fmt(v.mw)+" Da"],["XLogP3 ≤ 5",v.x<=5,fmt(v.x)],["HBD ≤ 5",v.hd<=5,String(v.hd)],["HBA ≤ 10",v.ha<=10,String(v.ha)]];
+  const viol=chk.filter(c=>!c[1]).length;
+  const vb=[["Dönebilen bağ ≤ 10",v.rb<=10,String(v.rb)],["TPSA ≤ 140 Å²",v.t<=140,fmt(v.t)+" Å²"]];
+  const vok=vb.every(c=>c[1]);
+  const row=(c)=>`<tr><td>${c[0]}</td><td class="num">${c[2]}</td><td>${pill(c[1],c[1]?"sağlanıyor":"ihlal")}</td></tr>`;
+  const verdict=viol===0?["p-ok","Lipinski: tam uyumlu"]:viol===1?["p-warn","Lipinski: 1 ihlal, uyumlu sayılır"]:["p-bad","Lipinski: "+viol+" ihlal"];
+  $("#o-res").innerHTML=`<h3 style="margin:0 0 8px;font:600 15px var(--f-body)">${nm.replace(/</g,"&lt;")}</h3><div class="rules"><span class="pill ${verdict[0]}">${verdict[1]}</span><span class="pill ${vok?"p-ok":"p-warn"}">Veber: ${vok?"uyumlu":"uyumsuz"}</span></div><div class="tablewrap"><table><tbody>${chk.map(row).join("")}${vb.map(row).join("")}</tbody></table></div><p class="note" style="margin-top:8px">Bu sonuç yalnızca PubChem değerlerine dayanan bir ön elemedir. ADMET tahmini için ADMET-AI gibi bir model gerekir.</p>`;
+}
+$("#o-go").onclick=evalOwn;
+const EX=[["Rosmarinik asit (CID 5281792)",360.3,2.4,145,5,8,7],["Kafeik asit (CID 689043)",180.16,1.2,77.8,3,4,2],["Naringenin (CID 439246)",272.25,2.4,87,3,5,1],["Kateşin (CID 9064)",290.27,0.4,110,5,6,1],["Kaempferol (CID 5280863)",286.24,1.9,107,4,6,1],["Kersetin (CID 5280343)",302.23,1.5,127,5,7,1],["Kersitrin (CID 5280459)",448.4,0.9,186,7,11,3]];
+EX.forEach((e,i)=>{const o=document.createElement("option");o.value=i;o.textContent=e[0];$("#o-ex").appendChild(o)});
+$("#o-ex").onchange=e=>{const x=EX[e.target.value];if(!x)return;["name","mw","x","t","hbd","hba","rot"].forEach((k,j)=>$("#o-"+k).value=x[j]);evalOwn()};
+// ---- tema
+(function(){const b=$("#theme");let st=0;const modes=[null,"light","dark"],lab=["sistem","açık","koyu"];
+  b.onclick=()=>{st=(st+1)%3;const r=document.documentElement;if(modes[st])r.setAttribute("data-theme",modes[st]);else r.removeAttribute("data-theme");b.textContent="Tema: "+lab[st]}})();
+function renderAll(){renderChips();renderSums();renderPlot();renderDetail();renderTable()}
+renderAll();evalOwn();
+</script>
+<script>
+(function(){
+  const rows=[["Lipinski ≤ 1 ihlal",d=>d.lip<=1],["Veber",d=>d.veber],["Egan",d=>d.egan],["Ghose",d=>d.ghose]];
+  let h="";
+  Object.keys(PL).forEach(n=>{
+    const g=DATA.filter(d=>d.plants.includes(n));
+    h+=`<div class="grp"><span class="dot" style="background:${PL[n].c}"></span>${n} <span class="note">(n = ${g.length})</span></div>`;
+    rows.forEach(([l,f])=>{const k=g.filter(f).length,p=Math.round(100*k/g.length);
+      h+=`<span class="lbl">${l}</span><div class="tr" title="${k}/${g.length}"><i style="width:${p}%;--c:${PL[n].c}"></i><em>${k}/${g.length}</em></div>`});
+  });
+  document.getElementById("cmp").innerHTML=h;
+})();
+</script>
+
+</body>
+</html>
